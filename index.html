@@ -1,84 +1,57 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Tính toán ứng suất</title>
+    <meta charset="UTF-8">
+    <title>Web Caculate</title>
 </head>
 <body>
-  <h2>Tính toán Ứng Suất Màng & Uốn</h2>
-  <button onclick="calculateStress()">Tính toán</button>
-  <pre id="output"></pre>
+    <h2>Nhập các giá trị đầu vào</h2>
+    <label for="N">N:</label>
+    <input type="number" id="N"><br><br>
+    <label for="Rc">R_c:</label>
+    <input type="number" id="Rc"><br><br>
+    <label for="t">t:</label>
+    <input type="number" id="t"><br><br>
+    <label for="x1">x₁:</label>
+    <input type="number" id="x1"><br><br>
+    <label for="x2">x₂:</label>
+    <input type="number" id="x2"><br><br>
+    <label for="xf">x_f:</label>
+    <input type="number" id="xf"><br><br>
+    <label for="xh">x_h:</label>
+    <input type="number" id="xh"><br><br>
+    <label for="xn">x_n:</label>
+    <input type="number" id="xn"><br><br>
 
-  <script>
-    function linspace(start, stop, num) {
-      const step = (stop - start) / (num - 1);
-      return Array.from({ length: num }, (_, i) => start + i * step);
-    }
+    <button onclick="tinhToan()">Tính toán</button>
+    <br><br>
+    <div id="result"></div>
 
-    function trapz(y, x) {
-      let sum = 0;
-      for (let i = 0; i < y.length - 1; i++) {
-        sum += 0.5 * (y[i] + y[i + 1]) * (x[i + 1] - x[i]);
-      }
-      return sum;
-    }
+    <script>
+        function tinhToan() {
+            // Lấy giá trị từ các input
+            const N = parseFloat(document.getElementById('N').value);
+            const Rc = parseFloat(document.getElementById('Rc').value);
+            const t = parseFloat(document.getElementById('t').value);
+            const x1 = parseFloat(document.getElementById('x1').value);
+            const x2 = parseFloat(document.getElementById('x2').value);
+            const xf = parseFloat(document.getElementById('xf').value);
+            const xh = parseFloat(document.getElementById('xh').value);
+            const xn = parseFloat(document.getElementById('xn').value);
 
-    function calculateStress() {
-      const N = 10;
-      const Rc = 0.1;
-      const t = 0.01;
-      const x1 = 0.0;
-      const x2 = 0.05;
-      const xf = 0.025;
-      const xh = 0.025;
-      const xn = 0.1;
+            // Kiểm tra giá trị nhập vào (có thể mở rộng kiểm tra thêm)
+            if (isNaN(N) || isNaN(Rc) || isNaN(t) || isNaN(x1) || isNaN(x2) || isNaN(xf) || isNaN(xh) || isNaN(xn)) {
+                document.getElementById('result').innerHTML = "<span style='color:red;'>Vui lòng nhập đầy đủ tất cả các giá trị!</span>";
+                return;
+            }
 
-      const x = linspace(x1, xn, N + 1);
+            // Xử lý tính toán ở đây (ví dụ: cộng tất cả lại)
+            // Thay dòng dưới bằng công thức thực tế của bạn
+            let ketQua = N + Rc + t + x1 + x2 + xf + xh + xn;
 
-      const sigma_y = [10, 12, 14, 15, 16, 15, 14, 12, 11, 10, 9];
-      const sigma_x = [5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3];
-      const sigma_h = [8, 9, 10, 11, 12, 11, 10, 9, 8, 7, 6];
-
-      const sigma_m_y1 = trapz(sigma_y.map(s => s * Rc), x) / (Rc * (xn - x1));
-      const sigma_m_x = trapz(sigma_x, x) / (xn - x1);
-      const sigma_m_h1 = trapz(sigma_h.map((s, i) => s * (1 + x[i] / t)), x) / (xn - x1);
-
-      function calc_bending(sigma, xpos, xref, weighted = false) {
-        const integrand = sigma.map((s, i) => {
-          const w = x[i] - xref;
-          return weighted ? w * s * (1 + x[i] / t) : w * s * Rc;
-        });
-        const num = trapz(integrand, x);
-        const denom = (xn - x1) * ((N ** 2) / 12 - xref ** 2);
-        return ((xpos - xref) * num) / (Rc * denom);
-      }
-
-      const bending_y1 = calc_bending(sigma_y, x1, xf);
-      const bending_y2 = calc_bending(sigma_y, x2, xf);
-      const bending_x1 = sigma_x[0] - sigma_m_x;
-      const bending_x2 = sigma_x[1] - sigma_m_x;
-      const bending_h1 = calc_bending(sigma_h, x1, xh, true);
-      const bending_h2 = calc_bending(sigma_h, x2, xh, true);
-
-      const result = {
-        membrane_axial_y1: sigma_m_y1,
-        membrane_radial_x: sigma_m_x,
-        membrane_circumferential_h1: sigma_m_h1,
-        bending_axial_y1: bending_y1,
-        bending_axial_y2: bending_y2,
-        bending_radial_x1: bending_x1,
-        bending_radial_x2: bending_x2,
-        bending_circumferential_h1: bending_h1,
-        bending_circumferential_h2: bending_h2,
-      };
-
-      let out = '';
-      for (const [key, val] of Object.entries(result)) {
-        out += `${key}: ${val.toFixed(4)} Pa\n`;
-      }
-
-      document.getElementById('output').textContent = out;
-    }
-  </script>
+            // Hiển thị kết quả
+            document.getElementById('result').innerHTML = "Kết quả tính toán (ví dụ cộng các giá trị): <b>" + ketQua + "</b>";
+        }
+    </script>
 </body>
 </html>
