@@ -2,137 +2,55 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Web Calculator</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #f3f4f6;
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .container {
-            background: #fff;
-            margin-top: 60px;
-            padding: 32px 28px 24px 28px;
-            border-radius: 16px;
-            box-shadow: 0 6px 32px rgba(0,0,0,0.07), 0 1.5px 4px rgba(59,130,246,0.10);
-            min-width: 320px;
-            max-width: 95vw;
-        }
-        h2 {
-            margin-bottom: 26px;
-            color: #2563eb;
-            letter-spacing: 1px;
-            text-align: center;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-        label {
-            color: #374151;
-            font-weight: 500;
-            margin-bottom: 3px;
-        }
-        input[type="number"] {
-            border: 1px solid #cbd5e0;
-            border-radius: 7px;
-            padding: 9px 12px;
-            background: #f9fafb;
-            font-size: 16px;
-            transition: border 0.2s;
-        }
-        input[type="number"]:focus {
-            border: 1.7px solid #2563eb;
-            background: #fff;
-        }
-        select {
-            padding: 9px 8px;
-            border-radius: 7px;
-            border: 1px solid #cbd5e0;
-            font-size: 16px;
-            background: #f9fafb;
-            margin-bottom: 4px;
-        }
-        button {
-            margin-top: 10px;
-            padding: 11px 0;
-            background: linear-gradient(90deg, #3b82f6, #2563eb);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            font-size: 17px;
-            font-weight: 600;
-            box-shadow: 0 2px 10px rgba(59,130,246,0.12);
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-        }
-        button:hover {
-            background: linear-gradient(90deg, #2563eb, #1e40af);
-            transform: scale(1.03);
-        }
-        #result {
-            margin-top: 22px;
-            font-size: 19px;
-            color: #15803d;
-            font-weight: 500;
-            min-height: 24px;
-            text-align: center;
-        }
-        @media (max-width: 500px) {
-            .container {
-                padding: 16px 2vw;
-                min-width: unset;
-            }
-        }
-    </style>
+    <title>Web Caculate</title>
 </head>
 <body>
-    <div class="container">
-        <h2>Máy Tính Đơn Giản</h2>
-        <form id="calcForm" onsubmit="calculate(event)">
-            <label for="num1">Số thứ nhất</label>
-            <input type="number" id="num1" required>
-            <label for="operation">Phép toán</label>
-            <select id="operation">
-                <option value="add">Cộng (+)</option>
-                <option value="sub">Trừ (−)</option>
-                <option value="mul">Nhân (×)</option>
-                <option value="div">Chia (÷)</option>
-            </select>
-            <label for="num2">Số thứ hai</label>
-            <input type="number" id="num2" required>
-            <button type="submit">Tính</button>
-        </form>
-        <div id="result"></div>
-    </div>
+    <h2>Nhập các giá trị đầu vào</h2>
+    <label for="N">N:</label>
+    <input type="number" id="N"><br><br>
+    <label for="Rc">R_c:</label>
+    <input type="number" id="Rc"><br><br>
+    <label for="t">t:</label>
+    <input type="number" id="t"><br><br>
+    <label for="x1">x₁:</label>
+    <input type="number" id="x1"><br><br>
+    <label for="x2">x₂:</label>
+    <input type="number" id="x2"><br><br>
+    <label for="xf">x_f:</label>
+    <input type="number" id="xf"><br><br>
+    <label for="xh">x_h:</label>
+    <input type="number" id="xh"><br><br>
+    <label for="xn">x_n:</label>
+    <input type="number" id="xn"><br><br>
+
+    <button onclick="tinhToan()">Tính toán</button>
+    <br><br>
+    <div id="result"></div>
+
     <script>
-        function calculate(event) {
-            event.preventDefault();
-            const num1 = parseFloat(document.getElementById('num1').value);
-            const num2 = parseFloat(document.getElementById('num2').value);
-            const op = document.getElementById('operation').value;
-            let result = '';
-            if (isNaN(num1) || isNaN(num2)) {
-                result = "Vui lòng nhập đủ hai số!";
-            } else {
-                switch (op) {
-                    case 'add': result = `${num1} + ${num2} = ${num1 + num2}`; break;
-                    case 'sub': result = `${num1} − ${num2} = ${num1 - num2}`; break;
-                    case 'mul': result = `${num1} × ${num2} = ${num1 * num2}`; break;
-                    case 'div':
-                        if (num2 === 0) result = "Không thể chia cho 0!";
-                        else result = `${num1} ÷ ${num2} = ${num1 / num2}`;
-                        break;
-                    default: result = "Phép toán không hợp lệ.";
-                }
+        function tinhToan() {
+            // Lấy giá trị từ các input
+            const N = parseFloat(document.getElementById('N').value);
+            const Rc = parseFloat(document.getElementById('Rc').value);
+            const t = parseFloat(document.getElementById('t').value);
+            const x1 = parseFloat(document.getElementById('x1').value);
+            const x2 = parseFloat(document.getElementById('x2').value);
+            const xf = parseFloat(document.getElementById('xf').value);
+            const xh = parseFloat(document.getElementById('xh').value);
+            const xn = parseFloat(document.getElementById('xn').value);
+
+            // Kiểm tra giá trị nhập vào (có thể mở rộng kiểm tra thêm)
+            if (isNaN(N) || isNaN(Rc) || isNaN(t) || isNaN(x1) || isNaN(x2) || isNaN(xf) || isNaN(xh) || isNaN(xn)) {
+                document.getElementById('result').innerHTML = "<span style='color:red;'>Vui lòng nhập đầy đủ tất cả các giá trị!</span>";
+                return;
             }
-            document.getElementById('result').innerText = result;
+
+            // Xử lý tính toán ở đây (ví dụ: cộng tất cả lại)
+            // Thay dòng dưới bằng công thức thực tế của bạn
+            let ketQua = N + Rc + t + x1 + x2 + xf + xh + xn;
+
+            // Hiển thị kết quả
+            document.getElementById('result').innerHTML = "Kết quả tính toán (ví dụ cộng các giá trị): <b>" + ketQua + "</b>";
         }
     </script>
 </body>
