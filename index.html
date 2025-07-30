@@ -62,6 +62,16 @@
         .stress-inputs > div {
             flex: 1;
         }
+        .error {
+            color: red;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        .input-hint {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -71,6 +81,7 @@
         <div class="form-group">
             <label for="N">Số đoạn tích phân (N):</label>
             <input type="number" id="N" min="2" value="10">
+            <div class="input-hint">Số lượng điểm tích phân (≥2)</div>
         </div>
         
         <div class="form-group">
@@ -112,16 +123,22 @@
             <label>Nhập ứng suất (các giá trị cách nhau bằng dấu phẩy):</label>
             <div class="stress-inputs">
                 <div>
-                    <label for="sigma_y">Ứng suất trục (sigma_y, Pa):</label>
-                    <input type="text" id="sigma_y" value="10,12,14,15,16,15,14,12,11,10,9">
+                    <label for="sigma_y">Ứng suất trục (σ_y, Pa):</label>
+                    <input type="text" id="sigma_y" value="10,12,14,15,16,15,14,12,11,10,9" placeholder="VD: 10,12,14,15,...">
+                    <div class="input-hint">Cần <span id="sigma_y_count">11</span> giá trị (N+1)</div>
+                    <div class="error" id="sigma_y_error"></div>
                 </div>
                 <div>
-                    <label for="sigma_x">Ứng suất xuyên tâm (sigma_x, Pa):</label>
-                    <input type="text" id="sigma_x" value="5,6,7,8,9,8,7,6,5,4">
+                    <label for="sigma_x">Ứng suất xuyên tâm (σ_x, Pa):</label>
+                    <input type="text" id="sigma_x" value="5,6,7,8,9,8,7,6,5,4" placeholder="VD: 5,6,7,8,...">
+                    <div class="input-hint">Cần <span id="sigma_x_count">10</span> giá trị (N)</div>
+                    <div class="error" id="sigma_x_error"></div>
                 </div>
                 <div>
-                    <label for="sigma_h">Ứng suất chu vi (sigma_h, Pa):</label>
-                    <input type="text" id="sigma_h" value="8,9,10,11,12,11,10,9,8">
+                    <label for="sigma_h">Ứng suất chu vi (σ_h, Pa):</label>
+                    <input type="text" id="sigma_h" value="8,9,10,11,12,11,10,9,8" placeholder="VD: 8,9,10,11,...">
+                    <div class="input-hint">Cần <span id="sigma_h_count">9</span> giá trị (N-1)</div>
+                    <div class="error" id="sigma_h_error"></div>
                 </div>
             </div>
         </div>
@@ -135,7 +152,44 @@
     </div>
 
     <script>
+        // Cập nhật số lượng giá trị cần nhập khi N thay đổi
+        document.getElementById('N').addEventListener('input', function() {
+            const N = parseInt(this.value) || 0;
+            document.getElementById('sigma_y_count').textContent = N + 1;
+            document.getElementById('sigma_x_count').textContent = N;
+            document.getElementById('sigma_h_count').textContent = N - 1;
+        });
+
+        function parseStressInput(inputStr) {
+            // Xử lý chuỗi nhập vào:
+            // 1. Loại bỏ khoảng trắng thừa
+            // 2. Tách bằng dấu phẩy
+            // 3. Chuyển thành số
+            return inputStr.replace(/\s/g, '').split(',').map(item => {
+                const num = parseFloat(item);
+                return isNaN(num) ? null : num;
+            });
+        }
+
+        function validateStressInput(inputArray, expectedLength, inputName) {
+            // Kiểm tra có giá trị null (không phải số)
+            const invalidValues = inputArray.filter(val => val === null);
+            if (invalidValues.length > 0) {
+                return `Giá trị ${inputName} chứa dữ liệu không hợp lệ`;
+            }
+            
+            // Kiểm tra số lượng giá trị
+            if (inputArray.length !== expectedLength) {
+                return `Cần chính xác ${expectedLength} giá trị (đã nhập ${inputArray.length})`;
+            }
+            
+            return null;
+        }
+
         function calculateStress() {
+            // Reset thông báo lỗi
+            document.querySelectorAll('.error').forEach(el => el.textContent = '');
+            
             // Lấy giá trị từ form
             const N = parseInt(document.getElementById('N').value);
             const R_c = parseFloat(document.getElementById('R_c').value);
@@ -146,16 +200,30 @@
             const x_h = parseFloat(document.getElementById('x_h').value);
             const x_n = parseFloat(document.getElementById('x_n').value);
             
-            // Chuyển đổi chuỗi ứng suất thành mảng số
-            const sigma_y = document.getElementById('sigma_y').value.split(',').map(Number);
-            const sigma_x = document.getElementById('sigma_x').value.split(',').map(Number);
-            const sigma_h = document.getElementById('sigma_h').value.split(',').map(Number);
+            // Xử lý và kiểm tra dữ liệu ứng suất
+            const sigma_y_input = parseStressInput(document.getElementById('sigma_y').value);
+            const sigma_x_input = parseStressInput(document.getElementById('sigma_x').value);
+            const sigma_h_input = parseStressInput(document.getElementById('sigma_h').value);
             
-            // Kiểm tra dữ liệu đầu vào
-            if (sigma_y.length !== N + 1 || sigma_x.length !== N || sigma_h.length !== N) {
-                alert(`Số lượng giá trị ứng suất không khớp với N!\nYêu cầu:\nsigma_y: ${N+1} giá trị\nsigma_x: ${N} giá trị\nsigma_h: ${N} giá trị`);
+            // Validate từng loại ứng suất
+            const sigma_y_error = validateStressInput(sigma_y_input, N + 1, "σ_y");
+            const sigma_x_error = validateStressInput(sigma_x_input, N, "σ_x");
+            const sigma_h_error = validateStressInput(sigma_h_input, N - 1, "σ_h");
+            
+            // Hiển thị lỗi nếu có
+            if (sigma_y_error) document.getElementById('sigma_y_error').textContent = sigma_y_error;
+            if (sigma_x_error) document.getElementById('sigma_x_error').textContent = sigma_x_error;
+            if (sigma_h_error) document.getElementById('sigma_h_error').textContent = sigma_h_error;
+            
+            // Dừng nếu có lỗi
+            if (sigma_y_error || sigma_x_error || sigma_h_error) {
                 return;
             }
+            
+            // Chuyển đổi thành mảng số hợp lệ
+            const sigma_y = sigma_y_input.map(Number);
+            const sigma_x = sigma_x_input.map(Number);
+            const sigma_h = sigma_h_input.map(Number);
             
             // Tính toán ứng suất
             const results = calculate_stress(N, R_c, t, x_1, x_2, x_f, x_h, x_n, sigma_y, sigma_x, sigma_h);
@@ -182,8 +250,8 @@
             );
             
             const sigma_m_h1 = (1 / (N - 1)) * (
-                (sigma_h[0] + sigma_h[N-1]) / 2 + 
-                sigma_h.slice(1, N-1).reduce((sum, val, j) => sum + val * (1 + x_values[j+1] / t), 0)
+                (sigma_h[0] + sigma_h[N-2]) / 2 + 
+                sigma_h.slice(1, N-2).reduce((sum, val, j) => sum + val * (1 + x_values[j+1] / t), 0)
             );
             
             // Tính toán ứng suất uốn (bending stress)
@@ -201,13 +269,13 @@
             const bending_x2 = sigma_x[1] - sigma_m_x;
             
             const bending_h1 = ((x_1 - x_h) / ((N - 1) * ((Math.pow(N - 1, 2) / 12 - Math.pow(x_h, 2))))) * (
-                (sigma_h[0] + sigma_h[N-1]) / 2 + 
-                sigma_h.slice(1, N-1).reduce((sum, val, j) => sum + (x_values[j+1] - x_h) * val * (1 + x_values[j+1] / t), 0)
+                (sigma_h[0] + sigma_h[N-2]) / 2 + 
+                sigma_h.slice(1, N-2).reduce((sum, val, j) => sum + (x_values[j+1] - x_h) * val * (1 + x_values[j+1] / t), 0)
             );
             
             const bending_h2 = ((x_2 - x_h) / ((N - 1) * ((Math.pow(N - 1, 2) / 12 - Math.pow(x_h, 2))))) * (
-                (sigma_h[0] + sigma_h[N-1]) / 2 + 
-                sigma_h.slice(1, N-1).reduce((sum, val, j) => sum + (x_values[j+1] - x_h) * val * (1 + x_values[j+1] / t), 0)
+                (sigma_h[0] + sigma_h[N-2]) / 2 + 
+                sigma_h.slice(1, N-2).reduce((sum, val, j) => sum + (x_values[j+1] - x_h) * val * (1 + x_values[j+1] / t), 0)
             );
             
             return {
@@ -227,17 +295,45 @@
             const resultContainer = document.getElementById('result-items');
             resultContainer.innerHTML = '';
             
-            for (const [key, value] of Object.entries(results)) {
-                const item = document.createElement('div');
-                item.className = 'result-item';
+            // Phân loại kết quả theo nhóm
+            const groups = {
+                "Ứng suất màng": [
+                    "membrane_axial_y1",
+                    "membrane_radial_x",
+                    "membrane_circumferential_h1"
+                ],
+                "Ứng suất uốn trục": [
+                    "bending_axial_y1",
+                    "bending_axial_y2"
+                ],
+                "Ứng suất uốn xuyên tâm": [
+                    "bending_radial_x1",
+                    "bending_radial_x2"
+                ],
+                "Ứng suất uốn chu vi": [
+                    "bending_circumferential_h1",
+                    "bending_circumferential_h2"
+                ]
+            };
+            
+            // Hiển thị kết quả theo nhóm
+            for (const [groupName, items] of Object.entries(groups)) {
+                const groupHeader = document.createElement('h3');
+                groupHeader.textContent = groupName;
+                resultContainer.appendChild(groupHeader);
                 
-                // Chuyển đổi tên biến thành dạng dễ đọc
-                const readableKey = key
-                    .replace(/_/g, ' ')
-                    .replace(/(^|\s)\S/g, match => match.toUpperCase());
-                
-                item.innerHTML = `<strong>${readableKey}:</strong> ${value.toFixed(4)} Pa`;
-                resultContainer.appendChild(item);
+                items.forEach(key => {
+                    const item = document.createElement('div');
+                    item.className = 'result-item';
+                    
+                    // Chuyển đổi tên biến thành dạng dễ đọc
+                    const readableKey = key
+                        .replace(/_/g, ' ')
+                        .replace(/(^|\s)\S/g, match => match.toUpperCase());
+                    
+                    item.innerHTML = `<strong>${readableKey}:</strong> ${results[key].toFixed(4)} Pa`;
+                    resultContainer.appendChild(item);
+                });
             }
             
             document.getElementById('results').style.display = 'block';
